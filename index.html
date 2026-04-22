@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khumba Connect PRO</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    margin: 0;
+    background: linear-gradient(135deg, #eef2f7, #e3e9f2);
+    color: #1f2d3d;
+}
+
+/* HEADER */
+header {
+    background: linear-gradient(135deg, #1f3a5f, #2c5282);
+    color: white;
+    padding: 18px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* PAGE */
+.page {
+    display: none;
+    padding: 18px;
+    padding-bottom: 90px;
+}
+.active { display: block; }
+
+/* CARD */
+.card {
+position: relative;
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+}
+
+/* BUTTONS */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1f3a5f, #2c5282);
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    transform: scale(1.02);
+    background: linear-gradient(135deg, #2c5282, #1f3a5f);
+}
+
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* INPUTS */
+input, textarea, select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    border-radius: 8px;
+    border: 1px solid #d0d7e2;
+    font-size: 14px;
+    transition: border 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border: 1px solid #2c5282;
+}
+
+/* IMAGES */
+img {
+    width: 100%;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+#mapContainer img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* CHART */
+canvas {
+    width: 100%;
+    background: white;
+    border-radius: 10px;
+    margin-top: 10px;
+    padding: 10px;
+}
+
+/* NAVBAR */
+.navbar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    background: white;
+    border-top: 1px solid #ddd;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+
+.navbar button {
+    flex: 1;
+    background: none;
+    color: #1f3a5f;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 5px;
+}
+
+.navbar button:hover {
+    background: #f1f5fb;
+}
+
+/* STATUS BADGES */
+.status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.pending { background: #f6ad55; color: white; }
+.valid { background: #38a169; color: white; }
+.invalid { background: #e53e3e; color: white; }
+
+.low { background: #38a169; color: white; }
+.moderate { background: #f6ad55; color: white; }
+.high { background: #e53e3e; color: white; }
+
+/* BARCODE */
+.barcode {
+    background: #f7fafc;
+    color: #1f3a5f;
+    font-family: monospace;
+    padding: 14px;
+    text-align: center;
+    border-radius: 10px;
+    border: 1px dashed #cbd5e0;
+    letter-spacing: 2px;
+    font-size: 16px;
+}
+
+/* ADMIN TABS */
+.admin-tabs button {
+    width: auto;
+    margin-right: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+/* POPUPS */
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background: white;
+    padding: 22px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    z-index: 9999;
+    animation: popIn 0.2s ease forwards;
+}
+.popup.login {
+    z-index: 1000;
+}
+
+.popup.message {
+    z-index: 99999 !important;
+}
+@keyframes popIn {
+    to { transform: translate(-50%, -50%) scale(1); }
+}
+
+.hidden { display: none; }
+
+/* TEXT IMPROVEMENTS */
+h2 {
+    font-weight: 600;
+}
+
+p {
+    font-size: 14px;
+}
+
+img { width:100%; border-radius:10px; margin-top:10px; }
+
+canvas { width:100%; background:white; border-radius:10px; margin-top:10px; }
+
+.navbar {
+position:fixed; bottom:0; width:100%;
+display:flex; background:white; border-top:1px solid #ddd;
+}
+.navbar button { flex:1; background:none; color:#1f3a5f; }
+
+.status { padding:4px 10px; border-radius:20px; font-size:12px; }
+.pending { background:orange; }
+.valid { background:green; color:white; }
+.invalid { background:red; color:white; }
+
+.low { background: green; color:white; }
+.moderate { background: orange; color:white; }
+.high { background: red; color:white; }
+
+.barcode {
+    background:#f5f5f5;
+    color:#1f3a5f;
+    font-family:monospace;
+    padding:12px;
+    text-align:center;
+    border-radius:10px;
+    border:1px solid #ddd;
+}
+
+.admin-tabs button { width:auto; margin-right:5px; }
+
+.popup {
+position:fixed;
+top:50%; left:50%;
+transform:translate(-50%,-50%);
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+z-index:1000;
+}
+.hidden { display:none; }
+.hidden { display:none; }
+
+/* LANDING PAGE */
+#landing {
+    height: 100vh;
+    background: url('mining.jpg') no-repeat center center/cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.landing-overlay {
+    background: rgba(0,0,0,0.5);
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+pointer-events: auto;
+}
+
+.valid-btn {
+    background: #38a169; /* green */
+    color: white;
+}
+
+.invalid-btn {
+    background: #e53e3e; /* red */
+    color: white;
+}
+
+.valid-btn:hover {
+    background: #2f855a;
+}
+
+.invalid-btn:hover {
+    background: #c53030;
+}
+
+.landing-logo {
+    width: 500px;
+    margin-bottom: 125px;
+
+
+}
+
+/* ✅ MAKE CARD THE POSITION REFERENCE */
+#report .card {
+    position: relative;
+}
+
+/* ✅ FLOATING MAP STYLE */
+.map-popup {
+    display: none;
+    position: absolute;
+    top: 140px;   /* adjust if needed */
+    right: 10px;
+    width: 260px;
+    z-index: 9999;
+    background: white;
+    padding: 8px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.map-popup img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.flag {
+    position: absolute;
+    font-size: 22px;
+    transform: translate(-50%, -50%);
+}
+
+
+
+
+</style>
+</head>
+
+<body>
+
+<header>⛏️ KHUMBA CONNECT PRO – ILLEGAL MINING CONTROL</header>
+
+<label style="text-align:center;display:block;">
+<input type="checkbox" id="adminToggle"> Admin Mode
+</label>
+
+<div id="popup" class="popup message hidden"></div>
+
+<!-- LOGIN -->
+<div id="loginBox" class="popup login hidden">
+<h3>🔐 Admin Login</h3>
+<input id="adminUser" placeholder="Username">
+<input id="adminPass" type="password" placeholder="Password">
+<button onclick="adminLogin()">Login</button>
+<button onclick="cancelLogin()">Cancel</button>
+</div>
+
+<!-- USER -->
+<div id="landing" class="page userPage active">
+
+    <div class="landing-overlay">
+        
+        <img src="https://www.steveharris.co.za/wp-content/uploads/2018/10/kumba-iron-ore-logo-1.jpg" class="landing-logo">
+      <h1>Kumba Connect</h1>
+        <p>Illegal Mining Control System</p>
+
+        <button onclick="enterApp()">Enter Platform</button>
+
+    </div>
+
+</div>
+<div id="home" class="page userPage">
+
+    <h2 style="text-align:center; margin-bottom:5px;">
+        Community Reports
+    </h2>
+
+    <p style="text-align:center; color:gray; margin-top:0;">
+        Keep our community safe by reporting any illegal mining incidents.
+    </p>
+
+    <div id="feed"></div>
+
+</div>
+
+<div id="report" class="page userPage">
+<div class="card">
+
+
+<label><b>Zone</b></label>
+<select id="zone" onchange="closeMap()">
+<option value="" disabled selected>Select Zone</option>
+<option>Zone A</option>
+<option>Zone B</option>
+<option>Zone C</option>
+<option>Zone D</option>
+<option>Zone E</option>
+<option>Zone F</option>
+<option>Zone G</option>
+<option>Zone H</option>
+</select>
+
+<!-- ✅ VIEW MAP BUTTON -->
+<button type="button" onclick="toggleMap()">📍 View Map</button>
+
+<!-- ✅ FLOATING MAP -->
+<div id="mapContainer" class="map-popup">
+    <img src="https://raw.githubusercontent.com/SSMaster1411/MineZone/main/PHOTO-2026-04-22-10-12-39.jpg">
+</div>
+
+<label style="margin-top:10px;"><b>Time Frame</b></label>
+<select id="timing">
+<option value="">Select Timing</option>
+<option>Past</option>
+<option>Present</option>
+<option>Future</option>
+</select>
+
+<label style="margin-top:10px;"><b>Description</b></label>
+<textarea id="desc" placeholder="Describe illegal mining activity"></textarea>
+
+<label style="margin-top:10px;"><b>Upload a photo (optional)</b></label>
+<input type="file" id="photo">
+
+<button onclick="submitReport()">Submit Report</button>
+
+</div>
+</div>
+
+<div id="status" class="page userPage"><div id="statusList"></div></div>
+
+<div id="rewards" class="page userPage">
+<div class="card">My Points: <b id="points"></b></div>
+<div id="rewardList"></div>
+</div>
+
+<div id="wallet" class="page userPage"><div id="walletList"></div></div>
+
+<div id="profile" class="page userPage">
+<div class="card">
+User: Anonymous<br>
+Points: <b id="pPoints"></b><br>
+Reports: <b id="pReports"></b><br>
+Invalid Reports: <b id="pInvalid"></b><br>
+Status: <b id="pStatus"></b>
+<div id="profileWarning" style="color:red; font-weight:bold; margin-top:10px;"></div>
+<hr>
+<b>🎁 Claimed Rewards:</b>
+<div id="claimedRewards"></div>
+</div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="page hidden">
+
+<div class="admin-tabs">
+<button onclick="showAdminTab('incoming')">Incoming</button>
+<button onclick="showAdminTab('logs')">Logs</button>
+<button onclick="showAdminTab('stats')">Stats</button>
+<button onclick="showAdminTab('topReporters')">🏆 Top Reporters</button>
+<button onclick="showAdminTab('hotspots')">🔥 Hotspots</button>
+<button onclick="showAdminTab('userControl')">⚠️ User Control</button>
+</div>
+
+<div id="incoming"></div>
+<div id="logs" class="hidden"></div>
+
+<div id="stats" class="hidden">
+
+<div class="card">
+    <h3>Zone Distribution</h3>
+    <canvas id="zoneChart"></canvas>
+</div>
+
+<div class="card">
+    <h3>Status Distribution</h3>
+    <canvas id="statusChart"></canvas>
+</div>
+
+<div class="card">
+    <h3>Report Timing (Past / Present / Future)</h3>
+    <canvas id="timingChart"></canvas>
+</div>
+
+<div class="card">
+    <h3>Reports Over Time</h3>
+    <canvas id="timeLineChart"></canvas>
+</div>
+
+</div>
+
+<div id="topReporters" class="hidden">
+<div class="card"><div id="topList"></div></div>
+</div>
+
+<div id="hotspots" class="hidden">
+    <div class="card">
+
+        <h3>🔥 Hotspot Map</h3>
+
+        <div style="position:relative; width:100%; max-width:500px; margin:auto;">
+            
+            <!-- MAP IMAGE -->
+            <img src="https://raw.githubusercontent.com/SSMaster1411/MineZone/main/PHOTO-2026-04-22-10-12-39.jpg" style="width:100%; border-radius:10px;">
+
+            <!-- FLAGS WILL BE INJECTED HERE -->
+            <div id="mapFlags"></div>
+
+        </div>
+
+    </div>
+</div>
+    <div class="card">
+        <div id="hotspotList"></div>
+    </div>
+</div>
+
+<div id="userControl" class="hidden">
+    <div class="card">
+        <div id="userControlList"></div>
+    </div>
+</div>
+
+</div>
+
+<!-- NAV -->
+<div class="navbar">
+<button onclick="showPage('home')" id="navHome">
+    Community Reports <span id="lockHome"></span>
+</button>
+
+<button onclick="showPage('report')" id="navReport">
+    Report <span id="lockReport"></span>
+</button>
+
+<button onclick="showPage('status')" id="navStatus">
+    Status <span id="lockStatus"></span>
+</button>
+
+<button onclick="showPage('rewards')" id="navRewards">
+    Rewards <span id="lockRewards"></span>
+</button>
+
+<button onclick="showPage('wallet')" id="navWallet">
+    Wallet <span id="lockWallet"></span>
+</button>
+
+<button onclick="showPage('profile')" id="navProfile">
+    Profile <span id="profileAlert"></span>
+</button>
+</div>
+
+<script>
+
+/* --- ALL ORIGINAL STRUCTURE PRESERVED --- */
+
+let users={
+    USER_1:{
+        points:0,
+        reports:0,
+        invalidCount:0,
+        isLocked:false
+    }
+};
+
+
+
+let userMap={USER_1:"AR-8392X"};
+let reverseUserMap={"AR-8392X":"USER_1"};
+let wallets={USER_1:[]};
+
+let reports=[];
+let currentUser="USER_1";
+let charts={};
+
+
+let zoneCoordinates = {
+    "Zone A": { top: "20%", left: "32%" },
+    "Zone B": { top: "25%", left: "50%" },
+    "Zone C": { top: "40%", left: "88%" },
+    "Zone D": { top: "51%", left: "58%" },
+    "Zone E": { top: "60%", left: "30%" },
+    "Zone F": { top: "52%", left: "70%" },
+    "Zone G": { top: "90%", left: "58%" },
+    "Zone H": { top: "90%", left: "78%" }
+};
+
+
+let ADMIN_USER="Group42";
+let ADMIN_PASS="TrustMine";
+let isAdminAuthenticated=false;
+
+/* POPUP */
+function pop(msg){
+
+let popupBox = document.getElementById("popup");
+
+// FORCE it above everything
+popupBox.style.zIndex = "99999";
+
+popupBox.innerText = msg;
+popupBox.classList.remove("hidden");
+
+setTimeout(() => {
+    popupBox.classList.add("hidden");
+}, 2000);
+
+}
+/* NAV */
+function showPage(p){
+
+// 🚫 LOCK ONLY USER SIDE (NOT ADMIN)
+if(!document.getElementById("admin").classList.contains("hidden")){
+    // Admin mode → do nothing
+}
+else if(users[currentUser].isLocked && p !== "profile"){
+    pop("🚫 Account locked. Access restricted to Profile only.");
+    p = "profile";
+}
+    document.querySelectorAll('.page').forEach(x=>{
+        x.classList.remove('active');
+        x.style.display = "none";   // FORCE hide
+    });
+
+    let page = document.getElementById(p);
+    page.classList.add('active');
+    page.style.display = "block";  // FORCE show
+
+    render();
+}
+
+/* ADMIN LOGIN */
+adminToggle.onchange=function(){
+if(this.checked){
+if(!isAdminAuthenticated){
+loginBox.classList.remove("hidden");
+this.checked=false;
+return;
+}
+enterAdmin();
+}else{
+isAdminAuthenticated=false;
+exitAdmin();
+}
+};
+
+function adminLogin(){
+
+let u = adminUser.value.trim();
+let p = adminPass.value.trim();
+
+// 🚫 Check empty fields FIRST
+if(!u || !p){
+    pop("❌ Access denied: Please enter username and password");
+    return;
+}
+
+// ❌ Wrong credentials
+if(u !== ADMIN_USER || p !== ADMIN_PASS){
+    pop("❌ Access denied: Incorrect login details");
+    return;
+}
+
+// ✅ Correct login
+isAdminAuthenticated = true;
+loginBox.classList.add("hidden");
+adminToggle.checked = true;
+enterAdmin();
+pop("✅ Access granted");
+
+
+}
+
+function cancelLogin(){
+loginBox.classList.add("hidden");
+adminToggle.checked=false;
+}
+
+function enterAdmin(){
+document.querySelectorAll('.userPage').forEach(x=>x.classList.add('hidden'));
+admin.classList.remove('hidden');
+document.querySelector('.navbar').style.display="none";
+showPage('admin');
+showAdminTab('incoming');
+}
+
+function exitAdmin(){
+document.querySelectorAll('.userPage').forEach(x=>x.classList.remove('hidden'));
+admin.classList.add('hidden');
+document.querySelector('.navbar').style.display="flex";
+showPage('home');
+}
+
+/* ADMIN TABS */
+function showAdminTab(tab){
+["incoming","logs","stats","topReporters","hotspots","userControl"].forEach(t=>{
+document.getElementById(t).classList.add("hidden");
+});
+document.getElementById(tab).classList.remove("hidden");
+
+if(tab==="stats") buildCharts();
+if(tab==="topReporters") buildTopReporters();
+if(tab==="hotspots") buildHotspots();
+if(tab==="userControl") buildUserControl();
+}
+
+/* REPORT SUBMISSION */
+
+function submitReport(){
+
+// 🚫 BLOCK LOCKED USERS
+if(users[currentUser].isLocked){
+    pop("🚫 You are locked out due to multiple invalid reports");
+    return;
+}
+if(!zone.value||!timing.value||!desc.value){
+pop("Please complete all fields");
+return;
+}
+if(!confirm("Submit report?")) return;
+
+let file=photo.files[0];
+if(file){
+let r=new FileReader();
+r.onload=e=>saveReport(e.target.result);
+r.readAsDataURL(file);
+}else saveReport(null);
+}
+
+function saveReport(img){
+navigator.geolocation.getCurrentPosition(pos=>{
+// 🚩 CHECK IF USER SHOULD BE FLAGGED
+let flagged = users[currentUser].invalidCount >= 2 || users[currentUser].isLocked;
+
+reports.push({
+id:reports.length+1,
+userId:userMap[currentUser],
+zone:zone.value,
+timing:timing.value,
+desc:desc.value,
+image:img,
+time:new Date().toISOString(),
+location:`https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`,
+status:"pending",
+flagged: flagged
+});
+users[currentUser].reports++;
+
+zone.selectedIndex=0;
+timing.value="";
+desc.value="";
+photo.value="";
+
+pop("Report Submitted Successfully ✅");
+render();
+});
+}
+
+/* PROCESS */
+function process(id,status){
+let inv=document.getElementById(`inv-${id}`).value;
+let find=document.getElementById(`find-${id}`).value;
+let sig=document.getElementById(`sig-${id}`).value;
+let date=document.getElementById(`date-${id}`).value;
+
+if(!inv||!find||!sig||!date) return pop("Complete investigation");
+
+let r=reports.find(x=>x.id===id);
+r.status=status;
+r.investigators=inv;
+r.findings=find;
+r.signature=sig;
+r.signDate=date;
+if(status==="valid"){
+    let realUser = reverseUserMap[r.userId];
+
+    // Check if report has a photo
+    if(r.image){
+        users[realUser].points += 50; // valid WITH photo
+    } else {
+        users[realUser].points += 20; // valid WITHOUT photo
+    }
+}
+if(status==="invalid"){
+    let realUser = reverseUserMap[r.userId];
+
+    users[realUser].invalidCount++;
+
+    // Store message instead of showing it here
+    if(users[realUser].invalidCount === 2){
+        users[realUser].warningMsg = "⚠️ Warning: 2 invalid reports. One more will lock your account.";
+    }
+
+    if(users[realUser].invalidCount >= 3){
+        users[realUser].isLocked = true;
+        users[realUser].warningMsg = "🚫 Your account has been locked due to 3 invalid reports.";
+    }
+}
+
+
+
+render();
+}
+
+/* REPORT CARD */
+function reportCard(r,isAdmin=false){
+return `
+<div class="card">
+<b>ID:</b> ${r.id}<br>
+<b>User:</b> ${r.userId}<br>
+<b>Zone:</b> ${r.zone}<br>
+<b>Timing:</b> ${r.timing}<br>
+<b>📅:</b> ${new Date(r.time).toLocaleString()}<br>
+<a href="${r.location}" target="_blank">📍 Location</a><br>
+
+<hr>${r.desc}
+${r.image?`<img src="${r.image}">`:""}
+
+<hr>
+<b>Status:</b> <span class="status ${r.status}">${r.status}</span>
+${r.flagged ? `<br><span class="status invalid">⚠️ Flagged User</span>` : ""}
+
+${r.status!=="pending"?`
+<hr>
+<b>Investigators:</b> ${r.investigators}<br>
+<b>Findings:</b> ${r.findings}
+`:""}
+
+${isAdmin && r.status==="pending"?`
+<hr>
+<input id="inv-${r.id}" placeholder="Investigators">
+<textarea id="find-${r.id}" placeholder="Findings"></textarea>
+<input id="sig-${r.id}" placeholder="Signature">
+<input id="date-${r.id}" type="date">
+<button class="valid-btn" onclick="process(${r.id},'valid')">VALID</button>
+<button class="invalid-btn" onclick="process(${r.id},'invalid')">INVALID</button>
+`:""}
+</div>`;
+}
+
+/* STATS */
+function buildCharts(){
+
+if(reports.length === 0){
+zoneChart.parentElement.innerHTML = "<div class='card' style='text-align:center; color:gray;'>No statistics available yet</div>";
+statusChart.parentElement.innerHTML = "";
+return;
+}
+
+// destroy old charts
+Object.values(charts).forEach(c=>c.destroy());
+
+let zoneData={}, statusData={}, timingData={}, timeData={};
+
+// 🔹 PROCESS DATA
+reports.forEach(r=>{
+
+// Zone
+zoneData[r.zone]=(zoneData[r.zone]||0)+1;
+
+// Status
+statusData[r.status]=(statusData[r.status]||0)+1;
+
+// Timing (Past / Present / Future)
+timingData[r.timing]=(timingData[r.timing]||0)+1;
+
+// Time (group by date)
+let date = new Date(r.time).toLocaleDateString();
+timeData[date]=(timeData[date]||0)+1;
+
+});
+
+// 🥧 PIE - ZONES
+charts.zone = new Chart(zoneChart,{
+type:'pie',
+data:{
+labels:Object.keys(zoneData),
+datasets:[{data:Object.values(zoneData)}]
+}
+});
+
+// 🍩 DOUGHNUT - STATUS
+charts.status = new Chart(statusChart,{
+type:'doughnut',
+data:{
+labels:Object.keys(statusData),
+datasets:[{data:Object.values(statusData)}]
+}
+});
+
+// 📊 BAR - TIMING
+charts.timing = new Chart(timingChart,{
+type:'bar',
+data:{
+labels:Object.keys(timingData),
+datasets:[{
+label:"Reports",
+data:Object.values(timingData),
+
+backgroundColor: Object.keys(timingData).map(label => {
+    if(label === "Past") return "#3182ce";     // blue
+    if(label === "Present") return "#38a169";  // green
+    if(label === "Future") return "#e53e3e";   // red
+    return "#718096"; // fallback grey
+})
+
+}]
+}
+});
+
+// 📈 LINE - TIME TREND
+charts.timeline = new Chart(timeLineChart,{
+type:'line',
+data:{
+labels:Object.keys(timeData),
+datasets:[{
+label:"Reports per Day",
+data:Object.values(timeData),
+fill:false,
+tension:0.3
+}]
+}
+});
+
+}
+
+/* TOP */
+function buildTopReporters(){
+let stats={};
+
+// Count valid reports
+reports.forEach(r=>{
+if(r.status==="valid"){
+stats[r.userId]=(stats[r.userId]||0)+1;
+}
+});
+
+// Sort users
+let sorted=Object.entries(stats).sort((a,b)=>b[1]-a[1]);
+
+// Build UI with BONUS BUTTONS
+if(sorted.length === 0){
+topList.innerHTML = "<div class='card' style='text-align:center; color:gray;'>No top reporters yet</div>";
+return;
+}
+
+topList.innerHTML = sorted.map((x,i)=>{
+
+let bonus = 0;
+
+// 🥇🥈🥉 BONUS LOGIC
+if(i===0) bonus = 200;
+if(i===1) bonus = 100;
+if(i===2) bonus = 50;
+
+return `
+<div class="card">
+<b>${x[0]}</b> - ${x[1]} valid reports<br>
+
+${bonus > 0 ? `
+<button onclick="awardBonus('${x[0]}', ${bonus})">
+🎁 Award ${bonus} Points
+</button>
+` : ""}
+
+</div>
+`;
+
+}).join("");
+}
+
+/* HOTSPOTS */
+function buildHotspots(){
+
+    let stats = {};
+
+    // count valid reports per zone
+    reports.forEach(r=>{
+        if(r.status === "valid"){
+            stats[r.zone] = (stats[r.zone] || 0) + 1;
+        }
+    });
+
+    let flagHTML = "";
+
+    Object.keys(zoneCoordinates).forEach(zone => {
+
+        let count = stats[zone] || 0;
+
+        let emoji = "";
+
+        if(count >= 1 && count <= 2){
+            emoji = "🟢"; // low
+        } else if(count >= 3 && count <= 5){
+            emoji = "🟡"; // moderate
+        } else if(count >= 6){
+            emoji = "🔴"; // high
+        } else {
+            return; // no reports → no flag
+        }
+
+        let pos = zoneCoordinates[zone];
+
+        flagHTML += `
+            <div class="flag" 
+                 style="top:${pos.top}; left:${pos.left};"
+                 title="${zone} (${count} reports)">
+                ${emoji}
+            </div>
+        `;
+    });
+
+    document.getElementById("mapFlags").innerHTML = flagHTML;
+}
+
+function buildUserControl(){
+
+// 🔍 FILTER ONLY WARNING OR LOCKED USERS
+let filteredUsers = Object.keys(users).filter(u => {
+    return users[u].invalidCount >= 2 || users[u].isLocked;
+});
+
+// 🚫 IF NONE → SHOW EMPTY CARD
+if(filteredUsers.length === 0){
+    document.getElementById("userControlList").innerHTML =
+        "<div class='card' style='text-align:center; color:gray;'>No users with warnings or restrictions</div>";
+    return;
+}
+
+// ✅ SHOW ONLY RELEVANT USERS
+let list = filteredUsers.map(u => {
+
+    let user = users[u];
+
+    let status = user.isLocked ? "🚫 Locked" : "⚠️ Warning";
+
+    return `
+    <div class="card">
+        <b>${userMap[u]}</b><br>
+        Invalid Reports: ${user.invalidCount}<br>
+        Status: ${status}<br><br>
+
+        ${user.isLocked ? `
+            <button onclick="unlockUser('${u}')">🔓 Restore Access</button>
+        ` : ""}
+
+        <button onclick="resetWarnings('${u}')">♻️ Clear Warnings</button>
+    </div>
+    `;
+});
+
+document.getElementById("userControlList").innerHTML = list.join("");
+}
+
+function unlockUser(userId){
+    if(confirm("Unlock this user?")){
+        users[userId].isLocked = false;
+        users[userId].invalidCount = 0;
+        pop("✅ User unlocked");
+        buildUserControl();
+    }
+}
+
+function resetWarnings(userId){
+    if(confirm("Reset warnings for this user?")){
+        users[userId].invalidCount = 0;
+        pop("♻️ Warnings reset");
+        buildUserControl();
+    }
+}
+
+function awardBonus(userId, points){
+
+let realUser = reverseUserMap[userId];
+
+if(!realUser){
+pop("User not found");
+return;
+}
+
+if(confirm(`Award ${points} points to ${userId}?`)){
+users[realUser].points += points;
+pop(`+${points} bonus awarded`);
+render();
+}
+
+
+
+}
+function claim(name, cost){
+
+// Check points again (safety)
+if(users[currentUser].points < cost){
+pop("Not enough points");
+return;
+}
+
+// Deduct points
+users[currentUser].points -= cost;
+
+// Generate simple barcode
+let code = "RW-" + Math.random().toString(36).substr(2,8).toUpperCase();
+
+// Save to wallet
+wallets[currentUser].push({
+name: name,
+code: code,
+date: new Date().toLocaleString()
+});
+
+// Show popup
+pop("Reward claimed!");
+
+// Update UI
+renderWallet();
+render();
+
+}
+ 
+
+function renderWallet(){
+
+walletList.innerHTML = wallets[currentUser].length === 0
+? "<div class='card' style='text-align:center; color:gray;'>No rewards available yet</div>"
+: wallets[currentUser].map(w => `
+<div class="card">
+<b>${w.name}</b><br>
+<div class="barcode">${w.code}</div>
+<small>${w.date}</small>
+</div>
+`).join("");
+
+}
+
+function renderClaimedRewards(){
+
+claimedRewards.innerHTML = wallets[currentUser].length === 0
+? "<div>No rewards claimed yet</div>"
+: wallets[currentUser].map(w => `
+<div class="card">
+<b>${w.name}</b><br>
+<small>${w.date}</small>
+</div>
+`).join("");
+
+}
+/* RENDER */
+function render(){
+
+points.innerText=users[currentUser].points;
+
+// 🚫 DISABLE NAV BUTTONS IF LOCKED
+if(users[currentUser].isLocked){
+    navHome.disabled = true;
+    navReport.disabled = true;
+    navStatus.disabled = true;
+    navRewards.disabled = true;
+    navWallet.disabled = true;
+} else {
+    navHome.disabled = false;
+    navReport.disabled = false;
+    navStatus.disabled = false;
+    navRewards.disabled = false;
+    navWallet.disabled = false;
+}
+
+// 🔒 SHOW LOCK ICONS ON TABS
+if(users[currentUser].isLocked){
+    lockHome.innerText = " 🔒";
+    lockReport.innerText = " 🔒";
+    lockStatus.innerText = " 🔒";
+    lockRewards.innerText = " 🔒";
+    lockWallet.innerText = " 🔒";
+} else {
+    lockHome.innerText = "";
+    lockReport.innerText = "";
+    lockStatus.innerText = "";
+    lockRewards.innerText = "";
+    lockWallet.innerText = "";
+}
+// ⚠️ PROFILE TAB ALERT ICON
+if(users[currentUser].isLocked){
+    profileAlert.innerText = "🚫";
+}
+else if(users[currentUser].invalidCount >= 2){
+    profileAlert.innerText = "⚠️";
+}
+else{
+    profileAlert.innerText = "";
+}
+
+// ⚠️ PROFILE TAB ALERT ICON  ← STEP 5 GOES HERE
+if(users[currentUser].isLocked){
+    profileWarning.innerText = "🚫 Your account is locked due to multiple invalid reports.";
+} 
+else if(users[currentUser].invalidCount >= 2){
+    profileWarning.innerText = "⚠️ Warning: You have multiple invalid reports. One more will lock your account.";
+} 
+else {
+    profileWarning.innerText = "";
+}
+pPoints.innerText=users[currentUser].points;
+pReports.innerText=users[currentUser].reports;
+pInvalid.innerText = users[currentUser].invalidCount;
+pStatus.innerText = users[currentUser].isLocked ? "🚫 Locked" : "✅ Active";
+
+
+rewardList.innerHTML=[
+{name:"R20 Airtime (10 POINTS)",cost:10},
+{name:"R40 Electricity (20 POINTS)",cost:20},
+{name:"R100 Uber (50 POINTS)",cost:50},
+{name:"R200 Checkers Voucher (100 POINTS)",cost:100},
+{name:"R500 PEP Bundle (250 POINTS)",cost:250}
+].map(r=>{
+let locked=users[currentUser].points<r.cost;
+return `<div class="card" style="${locked?'opacity:0.5':''}">
+<b>${r.name}</b>
+${locked?`<button disabled>🔒 Locked</button>`:
+`<button onclick="claim('${r.name}',${r.cost})">Redeem</button>`}
+</div>`;
+}).join("");
+
+feed.innerHTML=reports.map(r=>reportCard(r)).join("");
+statusList.innerHTML = reports.length === 0
+? "<div class='card' style='text-align:center; color:gray;'>No updates available yet</div>"
+: feed.innerHTML;
+
+let pendingReports = reports.filter(r=>r.status==="pending");
+
+incoming.innerHTML = pendingReports.length === 0
+? "<div class='card' style='text-align:center; color:gray;'>No incoming reports</div>"
+: pendingReports.map(r=>reportCard(r,true)).join("");
+let processedReports = reports.filter(r=>r.status!=="pending");
+
+logs.innerHTML = processedReports.length === 0
+? "<div class='card' style='text-align:center; color:gray;'>No processed reports yet</div>"
+: processedReports.map(r=>reportCard(r)).join("");
+renderWallet();
+renderClaimedRewards();
+}
+
+render();
+
+function enterApp(){
+    document.getElementById('landing').style.display = "none"; // kill landing
+    showPage('home');}
+
+function toggleMap(){
+    let map = document.getElementById("mapContainer");
+    map.style.display = (map.style.display === "block") ? "none" : "block";
+}
+
+function closeMap(){
+    let map = document.getElementById("mapContainer");
+    map.style.display = "none";
+}
+</script>
+
+</body>
+</html>

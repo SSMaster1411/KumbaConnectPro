@@ -349,6 +349,27 @@ pointer-events: auto;
 <button onclick="cancelLogin()">Cancel</button>
 </div>
 
+<div id="userAuth" class="popup login hidden">
+    <h3>👤 User Login</h3>
+
+    <input id="loginUser" placeholder="Username">
+    <input id="loginPass" type="password" placeholder="Password">
+
+    <button onclick="loginUserFunc()">Login</button>
+    <button onclick="showRegister()">Register</button>
+</div>
+
+<div id="registerBox" class="popup login hidden">
+    <h3>📝 Register</h3>
+
+    <input id="regUser" placeholder="Username">
+    <input id="regPass" type="password" placeholder="Password">
+    <input id="regName" placeholder="Full Name">
+    <input id="regEmail" placeholder="Email">
+
+    <button onclick="registerUser()">Create Account</button>
+</div>
+
 <!-- USER -->
 <div id="landing" class="page userPage active">
 
@@ -432,7 +453,8 @@ pointer-events: auto;
 
 <div id="profile" class="page userPage">
 <div class="card">
-User: Anonymous<br>
+User: <span id="profileName"></span><br>
+Email: <span id="profileEmail"></span><br>
 Points: <b id="pPoints"></b><br>
 Reports: <b id="pReports"></b><br>
 Invalid Reports: <b id="pInvalid"></b><br>
@@ -548,25 +570,27 @@ Status: <b id="pStatus"></b>
 
 /* --- ALL ORIGINAL STRUCTURE PRESERVED --- */
 
-let users={
-    USER_1:{
-        points:0,
-        reports:0,
-        invalidCount:0,
-        isLocked:false
+let users = {};
+let userMap = {};
+let reverseUserMap = {};
+let wallets = {};
+
+let loginDB = {
+    "TrustMine": {
+        password: "KumbaConnect",
+        userId: "USER_1",
+        profile: {
+            name: "Test User",
+            email: "test@kumba.com"
+        }
     }
 };
 
+let currentUser = null;
+let userCount = 1;
 
-
-let userMap={USER_1:"AR-8392X"};
-let reverseUserMap={"AR-8392X":"USER_1"};
-let wallets={USER_1:[]};
-
-let reports=[];
-let currentUser="USER_1";
 let charts={};
-
+let reports = [];
 
 let zoneCoordinates = {
     "Zone A": { top: "20%", left: "32%" },
@@ -702,52 +726,91 @@ if(tab==="userControl") buildUserControl();
 
 function submitReport(){
 
-// 🚫 BLOCK LOCKED USERS
+// 🚫 NOT LOGGED IN
+if(!currentUser){
+    pop("⚠️ Please login first");
+    document.getElementById("userAuth").classList.remove("hidden");
+    return;
+}
+
+// 🚫 LOCKED USER
 if(users[currentUser].isLocked){
     pop("🚫 You are locked out due to multiple invalid reports");
     return;
 }
-if(!zone.value||!timing.value||!desc.value){
-pop("Please complete all fields");
-return;
+
+// ✅ VALIDATION
+if(!zone.value || !timing.value || !desc.value){
+    pop("Please complete all fields");
+    return;
 }
+
 if(!confirm("Submit report?")) return;
 
-let file=photo.files[0];
+// ✅ HANDLE IMAGE
+let file = photo.files[0];
+
 if(file){
-let r=new FileReader();
-r.onload=e=>saveReport(e.target.result);
-r.readAsDataURL(file);
-}else saveReport(null);
+    let reader = new FileReader();
+    reader.onload = function(e){
+        saveReport(e.target.result);
+    };
+    reader.readAsDataURL(file);
+} else {
+    saveReport(null);
+}
 }
 
 function saveReport(img){
-navigator.geolocation.getCurrentPosition(pos=>{
-// 🚩 CHECK IF USER SHOULD BE FLAGGED
-let flagged = users[currentUser].invalidCount >= 2 || users[currentUser].isLocked;
 
-reports.push({
-id:reports.length+1,
-userId:userMap[currentUser],
-zone:zone.value,
-timing:timing.value,
-desc:desc.value,
-image:img,
-time:new Date().toISOString(),
-location:`https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`,
-status:"pending",
-flagged: flagged
-});
-users[currentUser].reports++;
+if(!currentUser || !users[currentUser]){
+    pop("⚠️ Session error. Please login again.");
+    return;
+}
 
-zone.selectedIndex=0;
-timing.value="";
-desc.value="";
-photo.value="";
+// ✅ SAFE LOCATION HANDLING
+navigator.geolocation.getCurrentPosition(
 
-pop("Report Submitted Successfully ✅");
-render();
-});
+    // SUCCESS
+    pos => submitData(pos.coords.latitude, pos.coords.longitude),
+
+    // ❌ IF USER BLOCKS LOCATION → STILL SUBMIT
+    () => submitData("Unknown", "Unknown")
+
+);
+
+// 🔥 CENTRAL SAVE FUNCTION
+function submitData(lat, long){
+
+    let flagged = users[currentUser].invalidCount >= 2 || users[currentUser].isLocked;
+
+    reports.push({
+        id: reports.length + 1,
+        userId: userMap[currentUser],
+        zone: zone.value,
+        timing: timing.value,
+        desc: desc.value,
+        image: img,
+        time: new Date().toISOString(),
+        location: (lat === "Unknown") 
+            ? "Location not shared"
+            : `https://maps.google.com/?q=${lat},${long}`,
+        status: "pending",
+        flagged: flagged
+    });
+
+    users[currentUser].reports++;
+
+    // RESET FORM
+    zone.selectedIndex = 0;
+    timing.value = "";
+    desc.value = "";
+    photo.value = "";
+
+    pop("Report Submitted Successfully ✅");
+    render();
+}
+
 }
 
 /* PROCESS */
@@ -801,7 +864,7 @@ function reportCard(r,isAdmin=false){
 return `
 <div class="card">
 <b>ID:</b> ${r.id}<br>
-<b>User:</b> ${r.userId}<br>
+${isAdmin ? `<b>User:</b> ${r.userId}<br>` : ""}
 <b>Zone:</b> ${r.zone}<br>
 <b>Timing:</b> ${r.timing}<br>
 <b>📅:</b> ${new Date(r.time).toLocaleString()}<br>
@@ -1197,7 +1260,12 @@ pPoints.innerText=users[currentUser].points;
 pReports.innerText=users[currentUser].reports;
 pInvalid.innerText = users[currentUser].invalidCount;
 pStatus.innerText = users[currentUser].isLocked ? "🚫 Locked" : "✅ Active";
+let loginEntry = Object.values(loginDB).find(x => x.userId === currentUser);
 
+if(loginEntry){
+    profileName.innerText = loginEntry.profile.name;
+    profileEmail.innerText = loginEntry.profile.email;
+}
 
 rewardList.innerHTML=[
 {name:"R20 Airtime (10 POINTS)",cost:10},
@@ -1236,8 +1304,8 @@ renderClaimedRewards();
 render();
 
 function enterApp(){
-    document.getElementById('landing').style.display = "none"; // kill landing
-    showPage('home');}
+    document.getElementById("userAuth").classList.remove("hidden");
+}
 
 function toggleMap(){
     let map = document.getElementById("mapContainer");
@@ -1248,6 +1316,111 @@ function closeMap(){
     let map = document.getElementById("mapContainer");
     map.style.display = "none";
 }
+
+
+function loginUserFunc(){
+
+    let u = loginUser.value.trim();
+    let p = loginPass.value.trim();
+
+    if(!loginDB[u] || loginDB[u].password !== p){
+        pop("❌ Invalid login");
+        return;
+    }
+
+    currentUser = loginDB[u].userId;
+
+    // FIRST TIME INIT
+    if(!users[currentUser]){
+        users[currentUser] = {
+            points:0,
+            reports:0,
+            invalidCount:0,
+            isLocked:false
+        };
+
+        let anonID = "AR-" + Math.random().toString(36).substring(2,10).toUpperCase();
+
+        userMap[currentUser] = anonID;
+        reverseUserMap[anonID] = currentUser;
+        wallets[currentUser] = [];
+    }
+
+    document.getElementById("userAuth").classList.add("hidden");
+    document.getElementById("landing").style.display = "none";
+
+    pop("✅ Login successful");
+    showPage("home");
+}
+
+function showRegister(){
+    document.getElementById("registerBox").classList.remove("hidden");
+}
+
+function registerUser(){
+
+    let u = regUser.value.trim();
+    let p = regPass.value.trim();
+    let name = regName.value.trim();
+    let email = regEmail.value.trim();
+
+    if(!u || !p || !name || !email){
+        pop("Complete all fields");
+        return;
+    }
+
+    if(loginDB[u]){
+        pop("Username already exists");
+        return;
+    }
+
+    let newUserId = "USER_" + (++userCount);
+
+    // SAVE LOGIN (PRIVATE)
+    loginDB[u] = {
+        password: p,
+        userId: newUserId,
+        profile: { name, email }
+    };
+
+    // CREATE ANONYMOUS USER
+    users[newUserId] = {
+        points:0,
+        reports:0,
+        invalidCount:0,
+        isLocked:false
+    };
+
+    let anonID = "AR-" + Math.random().toString(36).substring(2,10).toUpperCase();
+
+    userMap[newUserId] = anonID;
+    reverseUserMap[anonID] = newUserId;
+    wallets[newUserId] = [];
+
+    // ✅ SIMULATED EMAIL CONFIRMATION
+    pop("📧 Confirmation email sent to " + email);
+
+    // ✅ AUTO LOGIN USER
+    currentUser = newUserId;
+
+    // CLOSE POPUPS
+    document.getElementById("registerBox").classList.add("hidden");
+    document.getElementById("userAuth").classList.add("hidden");
+
+    // REMOVE LANDING PAGE
+    document.getElementById("landing").style.display = "none";
+
+    // SUCCESS MESSAGE
+    setTimeout(()=>{
+        pop("✅ Account verified & logged in");
+    },1000);
+
+    // OPEN PLATFORM
+    showPage("home");
+}
+
+
+
 </script>
 
 </body>
